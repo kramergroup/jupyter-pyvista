@@ -12,7 +12,8 @@ RUN pip install git+git://github.com/pyvista/pyvista@master matplotlib pyct
 COPY start_xvfb.sh /sbin/start_xvfb.sh
 RUN chmod a+x /sbin/start_xvfb.sh
 
-CMD ["start_xvfb.sh", "start-notebook.sh"]
+ENTRYPOINT ["tini", "-g", "--", "start_xvfb.sh"]
+CMD ["start-notebook.sh"]
 
 # Switch back to jovyan to avoid accidental container runs as root
 USER $NB_UID
