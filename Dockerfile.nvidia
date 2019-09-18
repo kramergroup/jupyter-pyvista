@@ -1,0 +1,26 @@
+FROM jupyter/scipy-notebook
+
+# This container assumes that the host mounts the correct nvidia drivers etc. into the container
+# as is done by the Kubernetes device-plugin. Define here the mount point:
+ENV NVIDIA_PATH=/usr/local/nvidia
+
+USER root
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends xorg xserver-xorg-video-dummy && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN conda install --quiet --yes bokeh pyviz_comms panel
+RUN pip install git+git://github.com/pyvista/pyvista@master matplotlib pyct
+
+
+COPY start_x11.sh /sbin/start_x11.sh
+RUN chmod a+x /sbin/start_x11.sh
+
+COPY xorg.conf.nvidia /etc/X11/xorg.conf
+
+ENTRYPOINT ["tini", "-g", "--", "start_x11.sh"]
+CMD ["start-notebook.sh"]
+
+# Switch back to jovyan to avoid accidental container runs as root
+# USER $NB_UID
